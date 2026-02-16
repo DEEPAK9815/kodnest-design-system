@@ -1,0 +1,158 @@
+/* KodNest Premium Build System - Layout Structure */
+
+/* Global Layout Container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+/* Top Bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: #FFFFFF;
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.top-bar-left {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.top-bar-center {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: rgba(17, 17, 17, 0.6);
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Context Header */
+.context-header {
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background-color: var(--color-background);
+}
+
+.context-header h1 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.context-header-subtext {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  color: rgba(17, 17, 17, 0.7);
+  max-width: var(--max-width-text);
+}
+
+/* Main Content Area */
+.main-content {
+  display: flex;
+  flex: 1;
+  gap: var(--spacing-lg);
+  padding: 0 var(--spacing-lg) var(--spacing-xl);
+  align-items: flex-start;
+}
+
+/* Primary Workspace */
+.primary-workspace {
+  flex: 0 0 var(--workspace-width);
+  min-width: 0;
+}
+
+/* Secondary Panel */
+.secondary-panel {
+  flex: 0 0 var(--panel-width);
+  min-width: 0;
+  position: sticky;
+  top: var(--spacing-lg);
+  align-self: flex-start;
+}
+
+.secondary-panel-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.secondary-panel-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+}
+
+.secondary-panel-text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: rgba(17, 17, 17, 0.7);
+  margin-bottom: var(--spacing-md);
+}
+
+.secondary-panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Proof Footer */
+.proof-footer {
+  padding: var(--spacing-lg) var(--spacing-lg);
+  background-color: #FFFFFF;
+  border-top: var(--border-width) solid var(--border-color);
+  margin-top: auto;
+}
+
+.proof-footer-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading-sm);
+  font-weight: 400;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+.proof-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.proof-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .primary-workspace {
+    flex: 1;
+    width: 100%;
+  }
+  
+  .secondary-panel {
+    flex: 1;
+    width: 100%;
+    position: static;
+  }
+  
+  .proof-checklist {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,50 @@
+/* KodNest Premium Build System - Design Tokens */
+
+:root {
+  /* Color System - Maximum 4 colors */
+  --color-background: #F7F6F3;
+  --color-text-primary: #111111;
+  --color-accent: #8B0000;
+  --color-success: #4A6741; /* muted green */
+  --color-warning: #B8860B; /* muted amber */
+  
+  /* Typography - Serif for headings */
+  --font-heading: 'Georgia', 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  
+  /* Typography Scale */
+  --font-size-heading-xl: 3rem; /* 48px */
+  --font-size-heading-lg: 2.25rem; /* 36px */
+  --font-size-heading-md: 1.75rem; /* 28px */
+  --font-size-heading-sm: 1.5rem; /* 24px */
+  --font-size-body: 1rem; /* 16px */
+  --font-size-body-lg: 1.125rem; /* 18px */
+  
+  --line-height-heading: 1.2;
+  --line-height-body: 1.7; /* between 1.6-1.8 */
+  --line-height-body-lg: 1.75;
+  
+  /* Spacing System - Consistent scale */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 40px;
+  --spacing-xl: 64px;
+  
+  /* Layout */
+  --max-width-text: 720px;
+  --workspace-width: 70%;
+  --panel-width: 30%;
+  
+  /* Borders & Radius */
+  --border-radius: 4px;
+  --border-width: 1px;
+  --border-color: rgba(17, 17, 17, 0.1);
+  
+  /* Transitions */
+  --transition-speed: 150ms;
+  --transition-easing: ease-in-out;
+  
+  /* Shadows - Subtle only */
+  --shadow-none: none;
+}
