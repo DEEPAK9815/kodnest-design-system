@@ -41,7 +41,7 @@
   function setSavedIds(ids) {
     try {
       localStorage.setItem(STORAGE_KEY_SAVED, JSON.stringify(ids));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function toggleSaved(jobId) {
@@ -68,7 +68,7 @@
   function savePreferences(prefs) {
     try {
       localStorage.setItem(STORAGE_KEY_PREFS, JSON.stringify(prefs));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // --- Match Score Engine ---
@@ -79,22 +79,22 @@
     var score = 0;
 
     // +25 if any roleKeyword appears in job.title
-    var roleKeywords = (prefs.roleKeywords || '').toLowerCase().split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var roleKeywords = (prefs.roleKeywords || '').toLowerCase().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
     var titleLower = (job.title || '').toLowerCase();
-    var titleMatch = roleKeywords.some(function(kw) { return titleLower.includes(kw); });
+    var titleMatch = roleKeywords.some(function (kw) { return titleLower.includes(kw); });
     if (titleMatch) score += 25;
 
     // +15 if any roleKeyword appears in job.description
     var descLower = (job.description || '').toLowerCase();
-    var descMatch = roleKeywords.some(function(kw) { return descLower.includes(kw); });
+    var descMatch = roleKeywords.some(function (kw) { return descLower.includes(kw); });
     if (descMatch) score += 15;
 
     // +15 if job.location matches preferredLocations
-    var prefLocs = (prefs.preferredLocations || []).map(function(l) { return l.toLowerCase(); });
+    var prefLocs = (prefs.preferredLocations || []).map(function (l) { return l.toLowerCase(); });
     if (prefLocs.indexOf((job.location || '').toLowerCase()) !== -1) score += 15;
 
     // +10 if job.mode matches preferredMode
-    var prefModes = (prefs.preferredMode || []).map(function(m) { return m.toLowerCase(); });
+    var prefModes = (prefs.preferredMode || []).map(function (m) { return m.toLowerCase(); });
     if (prefModes.indexOf((job.mode || '').toLowerCase()) !== -1) score += 10;
 
     // +10 if job.experience matches experienceLevel
@@ -103,9 +103,9 @@
     }
 
     // +15 if overlap between job.skills and user.skills
-    var userSkills = (prefs.skills || '').toLowerCase().split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-    var jobSkills = (job.skills || []).map(function(s) { return s.toLowerCase(); });
-    var skillMatch = userSkills.some(function(us) { return jobSkills.indexOf(us) !== -1; });
+    var userSkills = (prefs.skills || '').toLowerCase().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    var jobSkills = (job.skills || []).map(function (s) { return s.toLowerCase(); });
+    var skillMatch = userSkills.some(function (us) { return jobSkills.indexOf(us) !== -1; });
     if (skillMatch) score += 15;
 
     // +5 if postedDaysAgo <= 2
@@ -133,9 +133,9 @@
   function getLandingHTML() {
     return (
       '<div class="landing">' +
-        '<h1 class="landing-headline">Stop Missing The Right Jobs.</h1>' +
-        '<p class="landing-subtext">Precision-matched job discovery delivered daily at 9AM.</p>' +
-        '<a href="/settings" class="btn btn-primary landing-cta">Start Tracking</a>' +
+      '<h1 class="landing-headline">Stop Missing The Right Jobs.</h1>' +
+      '<p class="landing-subtext">Precision-matched job discovery delivered daily at 9AM.</p>' +
+      '<a href="/settings" class="btn btn-primary landing-cta">Start Tracking</a>' +
       '</div>'
     );
   }
@@ -154,62 +154,62 @@
     var modes = ['Remote', 'Hybrid', 'Onsite'];
     var experiences = ['Fresher', '0-1', '1-3', '3-5', '5+'];
 
-    var locOptions = allLocations.map(function(l) {
+    var locOptions = allLocations.map(function (l) {
       var selected = prefs.preferredLocations.indexOf(l) !== -1 ? ' selected' : '';
       return '<option value="' + escapeHtml(l) + '"' + selected + '>' + escapeHtml(l) + '</option>';
     }).join('');
 
-    var modeCheckboxes = modes.map(function(m) {
+    var modeCheckboxes = modes.map(function (m) {
       var checked = prefs.preferredMode.indexOf(m) !== -1 ? ' checked' : '';
       return (
         '<label class="checkbox-label">' +
-          '<input type="checkbox" name="preferredMode" value="' + escapeHtml(m) + '"' + checked + '> ' + escapeHtml(m) +
+        '<input type="checkbox" name="preferredMode" value="' + escapeHtml(m) + '"' + checked + '> ' + escapeHtml(m) +
         '</label>'
       );
     }).join('');
 
-    var expOptions = experiences.map(function(e) {
+    var expOptions = experiences.map(function (e) {
       var selected = prefs.experienceLevel === e ? ' selected' : '';
       return '<option value="' + escapeHtml(e) + '"' + selected + '>' + escapeHtml(e) + '</option>';
     }).join('');
 
     return (
       '<div class="settings-page">' +
-        '<h1>Settings</h1>' +
-        '<form class="settings-form" id="settings-form" novalidate>' +
-          '<div class="form-group">' +
-            '<label for="role-keywords">Role Keywords (comma-separated)</label>' +
-            '<input type="text" id="role-keywords" class="input" name="roleKeywords" value="' + escapeHtml(prefs.roleKeywords) + '" placeholder="e.g. Frontend, React, Product Manager">' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label for="locations">Preferred Locations (hold Ctrl to select multiple)</label>' +
-            '<select id="locations" class="input" name="preferredLocations" multiple size="5">' +
-               locOptions +
-            '</select>' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label>Preferred Mode</label>' +
-            '<div class="checkbox-group">' + modeCheckboxes + '</div>' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label for="experience">Experience Level</label>' +
-            '<select id="experience" class="input" name="experienceLevel">' +
-              '<option value="">Select</option>' +
-              expOptions +
-            '</select>' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label for="skills">Skills (comma-separated)</label>' +
-            '<input type="text" id="skills" class="input" name="skills" value="' + escapeHtml(prefs.skills) + '" placeholder="e.g. Java, Python, SQL">' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label for="min-match-score">Minimum Match Score: <span id="score-val">' + prefs.minMatchScore + '</span></label>' +
-            '<input type="range" id="min-match-score" class="input-range" name="minMatchScore" min="0" max="100" value="' + prefs.minMatchScore + '">' +
-          '</div>' +
-          '<div class="form-actions">' +
-            '<button type="submit" class="btn btn-primary">Save Preferences</button>' +
-          '</div>' +
-        '</form>' +
+      '<h1>Settings</h1>' +
+      '<form class="settings-form" id="settings-form" novalidate>' +
+      '<div class="form-group">' +
+      '<label for="role-keywords">Role Keywords (comma-separated)</label>' +
+      '<input type="text" id="role-keywords" class="input" name="roleKeywords" value="' + escapeHtml(prefs.roleKeywords) + '" placeholder="e.g. Frontend, React, Product Manager">' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label for="locations">Preferred Locations (hold Ctrl to select multiple)</label>' +
+      '<select id="locations" class="input" name="preferredLocations" multiple size="5">' +
+      locOptions +
+      '</select>' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Preferred Mode</label>' +
+      '<div class="checkbox-group">' + modeCheckboxes + '</div>' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label for="experience">Experience Level</label>' +
+      '<select id="experience" class="input" name="experienceLevel">' +
+      '<option value="">Select</option>' +
+      expOptions +
+      '</select>' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label for="skills">Skills (comma-separated)</label>' +
+      '<input type="text" id="skills" class="input" name="skills" value="' + escapeHtml(prefs.skills) + '" placeholder="e.g. Java, Python, SQL">' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label for="min-match-score">Minimum Match Score: <span id="score-val">' + prefs.minMatchScore + '</span></label>' +
+      '<input type="range" id="min-match-score" class="input-range" name="minMatchScore" min="0" max="100" value="' + prefs.minMatchScore + '">' +
+      '</div>' +
+      '<div class="form-actions">' +
+      '<button type="submit" class="btn btn-primary">Save Preferences</button>' +
+      '</div>' +
+      '</form>' +
       '</div>'
     );
   }
@@ -219,7 +219,7 @@
     if (score >= 80) cls = 'match-badge-high';
     else if (score >= 60) cls = 'match-badge-amber';
     else if (score < 40) cls = 'match-badge-low';
-    
+
     return '<span class="match-badge ' + cls + '">' + score + '% Match</span>';
   }
 
@@ -231,25 +231,25 @@
 
     return (
       '<div class="job-card" data-job-id="' + escapeHtml(job.id) + '">' +
-        '<div class="job-card-header">' +
-          '<h3 class="job-card-title">' + escapeHtml(job.title) + '</h3>' +
-          (matchScore !== null ? getMatchBadgeHTML(matchScore) : '') +
-        '</div>' +
-        '<div class="job-card-company">' + escapeHtml(job.company) + '</div>' +
-        '<div class="job-card-meta">' +
-          escapeHtml(job.location || '') + ' · ' + escapeHtml(job.mode || '') + ' · ' + escapeHtml(job.experience || '') + ' · ' + escapeHtml(job.salaryRange || '') +
-        '</div>' +
-        '<div class="job-card-footer">' +
-          '<div class="job-card-badges">' +
-            '<span class="job-source-badge">' + escapeHtml(job.source || '') + '</span>' +
-            '<span class="job-posted">' + postedLabel(typeof job.postedDaysAgo === 'number' ? job.postedDaysAgo : 0) + '</span>' +
-          '</div>' +
-          '<div class="job-card-actions">' +
-            '<button type="button" class="btn btn-secondary job-btn-view" data-action="view" data-job-id="' + escapeHtml(job.id) + '">View</button>' +
-            (showSaveButton ? '<button type="button" class="btn btn-secondary job-btn-save" data-action="save" data-job-id="' + escapeHtml(job.id) + '">' + saveLabel + '</button>' : '') +
-            '<a href="' + escapeHtml(job.applyUrl || '#') + '" target="_blank" rel="noopener" class="btn btn-primary job-btn-apply">Apply</a>' +
-          '</div>' +
-        '</div>' +
+      '<div class="job-card-header">' +
+      '<h3 class="job-card-title">' + escapeHtml(job.title) + '</h3>' +
+      (matchScore !== null ? getMatchBadgeHTML(matchScore) : '') +
+      '</div>' +
+      '<div class="job-card-company">' + escapeHtml(job.company) + '</div>' +
+      '<div class="job-card-meta">' +
+      escapeHtml(job.location || '') + ' · ' + escapeHtml(job.mode || '') + ' · ' + escapeHtml(job.experience || '') + ' · ' + escapeHtml(job.salaryRange || '') +
+      '</div>' +
+      '<div class="job-card-footer">' +
+      '<div class="job-card-badges">' +
+      '<span class="job-source-badge">' + escapeHtml(job.source || '') + '</span>' +
+      '<span class="job-posted">' + postedLabel(typeof job.postedDaysAgo === 'number' ? job.postedDaysAgo : 0) + '</span>' +
+      '</div>' +
+      '<div class="job-card-actions">' +
+      '<button type="button" class="btn btn-secondary job-btn-view" data-action="view" data-job-id="' + escapeHtml(job.id) + '">View</button>' +
+      (showSaveButton ? '<button type="button" class="btn btn-secondary job-btn-save" data-action="save" data-job-id="' + escapeHtml(job.id) + '">' + saveLabel + '</button>' : '') +
+      '<a href="' + escapeHtml(job.applyUrl || '#') + '" target="_blank" rel="noopener" class="btn btn-primary job-btn-apply">Apply</a>' +
+      '</div>' +
+      '</div>' +
       '</div>'
     );
   }
@@ -260,7 +260,7 @@
 
     // Calculate match scores for all jobs first if prefs exist
     if (prefs) {
-      list.forEach(function(j) {
+      list.forEach(function (j) {
         j._matchScore = calculateMatchScore(j, prefs);
       });
     }
@@ -268,7 +268,7 @@
     // Filter by match threshold if toggle is on
     if (state.showMatchesOnly && prefs) {
       var threshold = parseInt(prefs.minMatchScore || 40, 10);
-      list = list.filter(function(j) {
+      list = list.filter(function (j) {
         return (j._matchScore || 0) >= threshold;
       });
     }
@@ -278,7 +278,7 @@
     if (kw) {
       list = list.filter(function (j) {
         return (j.title && j.title.toLowerCase().indexOf(kw) !== -1) ||
-               (j.company && j.company.toLowerCase().indexOf(kw) !== -1);
+          (j.company && j.company.toLowerCase().indexOf(kw) !== -1);
       });
     }
     // Location
@@ -322,21 +322,21 @@
   function getDashboardHTML(state) {
     var jobs = getJobs();
     var prefs = getPreferences();
-    
+
     // Add banner if no prefs
     var bannerHTML = '';
     if (!prefs) {
       bannerHTML = (
         '<div class="preference-banner">' +
-          '<p>Set your preferences to activate intelligent matching.</p>' +
-          '<a href="/settings" class="btn btn-sm btn-primary">Setup</a>' +
+        '<p>Set your preferences to activate intelligent matching.</p>' +
+        '<a href="/settings" class="btn btn-sm btn-primary">Setup</a>' +
         '</div>'
       );
     }
 
     var opts = buildFilterOptions(jobs);
     var filtered = filterAndSortJobs(jobs, state); // This adds _matchScore if prefs exist
-    
+
     var locOpts = opts.locations.map(function (l) {
       return '<option value="' + escapeHtml(l) + '"' + (state.location === l ? ' selected' : '') + '>' + escapeHtml(l) + '</option>';
     }).join('');
@@ -353,63 +353,63 @@
     var cards = filtered.map(function (j) { return jobCardHTML(j, true); }).join('');
     var emptyState = (
       '<div class="app-empty-state">' +
-         '<h2 class="app-empty-state-title">No roles match your criteria</h2>' +
-         '<p class="app-empty-state-text">Adjust filters or lower threshold.</p>' +
+      '<h2 class="app-empty-state-title">No roles match your criteria</h2>' +
+      '<p class="app-empty-state-text">Adjust filters or lower threshold.</p>' +
       '</div>'
     );
 
     return (
       '<div class="dashboard-page">' +
-        '<h1>Dashboard</h1>' +
-        bannerHTML + 
-        '<div class="filter-bar">' +
-          '<div class="filter-group">' +
-            '<label for="filter-keyword">Keyword</label>' +
-            '<input type="text" id="filter-keyword" class="input" placeholder="Title or company" value="' + escapeHtml(state.keyword) + '">' +
-          '</div>' +
-          '<div class="filter-group">' +
-            '<label for="filter-location">Location</label>' +
-            '<select id="filter-location" class="input">' +
-              '<option value="">All</option>' + locOpts +
-            '</select>' +
-          '</div>' +
-          '<div class="filter-group">' +
-            '<label for="filter-mode">Mode</label>' +
-            '<select id="filter-mode" class="input">' +
-              '<option value="">All</option>' + modeOpts +
-            '</select>' +
-          '</div>' +
-          '<div class="filter-group">' +
-            '<label for="filter-experience">Experience</label>' +
-            '<select id="filter-experience" class="input">' +
-              '<option value="">All</option>' + expOpts +
-            '</select>' +
-          '</div>' +
-          '<div class="filter-group">' +
-            '<label for="filter-source">Source</label>' +
-            '<select id="filter-source" class="input">' +
-              '<option value="">All</option>' + srcOpts +
-            '</select>' +
-          '</div>' +
-          '<div class="filter-group">' +
-            '<label for="filter-sort">Sort</label>' +
-            '<select id="filter-sort" class="input">' +
-              '<option value="latest"' + (state.sort === 'latest' ? ' selected' : '') + '>Latest</option>' +
-              '<option value="match"' + (state.sort === 'match' ? ' selected' : '') + '>Match Score</option>' +
-              '<option value="salary"' + (state.sort === 'salary' ? ' selected' : '') + '>Salary</option>' +
-              '<option value="oldest"' + (state.sort === 'oldest' ? ' selected' : '') + '>Oldest</option>' +
-            '</select>' +
-          '</div>' +
-          (prefs ? 
-          '<div class="filter-group toggle-group">' +
-            '<label class="toggle-switch">' +
-              '<input type="checkbox" id="filter-show-matches" ' + (state.showMatchesOnly ? 'checked' : '') + '>' +
-              '<span class="toggle-slider"></span>' +
-            '</label>' +
-            '<label for="filter-show-matches" class="toggle-label">Show only matches</label>' +
-          '</div>' : '') +
-        '</div>' +
-        '<div class="jobs-list">' + (cards || emptyState) + '</div>' +
+      '<h1>Dashboard</h1>' +
+      bannerHTML +
+      '<div class="filter-bar">' +
+      '<div class="filter-group">' +
+      '<label for="filter-keyword">Keyword</label>' +
+      '<input type="text" id="filter-keyword" class="input" placeholder="Title or company" value="' + escapeHtml(state.keyword) + '">' +
+      '</div>' +
+      '<div class="filter-group">' +
+      '<label for="filter-location">Location</label>' +
+      '<select id="filter-location" class="input">' +
+      '<option value="">All</option>' + locOpts +
+      '</select>' +
+      '</div>' +
+      '<div class="filter-group">' +
+      '<label for="filter-mode">Mode</label>' +
+      '<select id="filter-mode" class="input">' +
+      '<option value="">All</option>' + modeOpts +
+      '</select>' +
+      '</div>' +
+      '<div class="filter-group">' +
+      '<label for="filter-experience">Experience</label>' +
+      '<select id="filter-experience" class="input">' +
+      '<option value="">All</option>' + expOpts +
+      '</select>' +
+      '</div>' +
+      '<div class="filter-group">' +
+      '<label for="filter-source">Source</label>' +
+      '<select id="filter-source" class="input">' +
+      '<option value="">All</option>' + srcOpts +
+      '</select>' +
+      '</div>' +
+      '<div class="filter-group">' +
+      '<label for="filter-sort">Sort</label>' +
+      '<select id="filter-sort" class="input">' +
+      '<option value="latest"' + (state.sort === 'latest' ? ' selected' : '') + '>Latest</option>' +
+      '<option value="match"' + (state.sort === 'match' ? ' selected' : '') + '>Match Score</option>' +
+      '<option value="salary"' + (state.sort === 'salary' ? ' selected' : '') + '>Salary</option>' +
+      '<option value="oldest"' + (state.sort === 'oldest' ? ' selected' : '') + '>Oldest</option>' +
+      '</select>' +
+      '</div>' +
+      (prefs ?
+        '<div class="filter-group toggle-group">' +
+        '<label class="toggle-switch">' +
+        '<input type="checkbox" id="filter-show-matches" ' + (state.showMatchesOnly ? 'checked' : '') + '>' +
+        '<span class="toggle-slider"></span>' +
+        '</label>' +
+        '<label for="filter-show-matches" class="toggle-label">Show only matches</label>' +
+        '</div>' : '') +
+      '</div>' +
+      '<div class="jobs-list">' + (cards || emptyState) + '</div>' +
       '</div>'
     );
   }
@@ -449,36 +449,136 @@
     var prefs = getPreferences();
     // Calculate score for display
     if (prefs) {
-      savedJobs.forEach(function(j) { j._matchScore = calculateMatchScore(j, prefs); });
+      savedJobs.forEach(function (j) { j._matchScore = calculateMatchScore(j, prefs); });
     }
     var cards = savedJobs.map(function (j) { return jobCardHTML(j, true); }).join('');
     return (
       '<div class="saved-page">' +
-        '<h1>Saved</h1>' +
-        (savedJobs.length
-          ? '<div class="jobs-list">' + cards + '</div>'
-          : '<div class="app-empty-state">' +
-              '<h2 class="app-empty-state-title">No saved jobs</h2>' +
-              '<p class="app-empty-state-text">Jobs you save will appear here.</p>' +
-            '</div>') +
+      '<h1>Saved</h1>' +
+      (savedJobs.length
+        ? '<div class="jobs-list">' + cards + '</div>'
+        : '<div class="app-empty-state">' +
+        '<h2 class="app-empty-state-title">No saved jobs</h2>' +
+        '<p class="app-empty-state-text">Jobs you save will appear here.</p>' +
+        '</div>') +
       '</div>'
     );
   }
 
   function getDigestHTML() {
+    var prefs = getPreferences();
+    if (!prefs) {
+      return (
+        '<div class="app-empty-state">' +
+        '<h2 class="app-empty-state-title">Set Preferences first</h2>' +
+        '<p class="app-empty-state-text">We need your preferences to generate a personalized digest.</p>' +
+        '<a href="/settings" class="btn btn-primary">Go to Settings</a>' +
+        '</div>'
+      );
+    }
+
+    var today = new Date().toISOString().slice(0, 10);
+    var key = 'jobTrackerDigest_' + today;
+    var stored = localStorage.getItem(key);
+
+    if (stored) {
+      var digestJobs = JSON.parse(stored);
+      if (digestJobs.length === 0) {
+        return (
+          '<div class="app-empty-state">' +
+          '<h2 class="app-empty-state-title">No matching roles today.</h2>' +
+          '<p class="app-empty-state-text">Check again tomorrow or adjust your preferences.</p>' +
+          '<button type="button" class="btn btn-secondary" onclick="localStorage.removeItem(\'' + key + '\'); location.reload();">Reset Simulation</button>' +
+          '</div>'
+        );
+      }
+      return renderDigestView(digestJobs, today);
+    }
+
     return (
-      '<div class="app-empty-state">' +
-        '<h2 class="app-empty-state-title">Digest</h2>' +
-        '<p class="app-empty-state-text">Your daily digest will appear here.</p>' +
+      '<div class="digest-landing">' +
+      '<h1>Daily Digest</h1>' +
+      '<p>Simulate the 9AM daily trigger to get your top 10 matches.</p>' +
+      '<button type="button" id="btn-generate-digest" class="btn btn-primary btn-lg">Generate Today\'s 9AM Digest (Simulated)</button>' +
+      '<p class="text-xs text-muted mt-4">Demo Mode: Daily 9AM trigger simulated manually.</p>' +
       '</div>'
     );
+  }
+
+  function renderDigestView(jobs, dateObj) {
+    var jobItems = jobs.map(function (j) {
+      return (
+        '<div class="digest-job-item">' +
+        '<div class="digest-job-header">' +
+        '<h3 class="digest-job-title">' + escapeHtml(j.title) + '</h3>' +
+        '<span class="match-badge match-badge-high">' + (j._matchScore || 0) + '% Match</span>' +
+        '</div>' +
+        '<div class="digest-job-meta">' + escapeHtml(j.company) + ' • ' + escapeHtml(j.location) + '</div>' +
+        '<div class="digest-job-footer">' +
+        '<span>' + escapeHtml(j.experience) + '</span>' +
+        '<button class="btn btn-sm btn-outline btn-apply-mock" data-title="' + escapeHtml(j.title) + '">Apply Now</button>' +
+        '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    return (
+      '<div class="digest-page">' +
+      '<div class="digest-container">' +
+      '<div class="digest-card">' +
+      '<div class="digest-header">' +
+      '<h2>Top 10 jobs for you</h2>' +
+      '<p>9AM Digest • ' + new Date().toLocaleDateString() + '</p>' +
+      '</div>' +
+      '<div class="digest-body">' + jobItems + '</div>' +
+      '<div class="digest-footer">' +
+      '<p>This digest was generated based on your preferences.</p>' +
+      '</div>' +
+      '</div>' +
+      '<div class="digest-actions">' +
+      '<button type="button" id="btn-copy-digest" class="btn btn-secondary">Copy Digest to Clipboard</button>' +
+      '<button type="button" id="btn-email-digest" class="btn btn-secondary">Create Email Draft</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function generateDigest() {
+    var prefs = getPreferences();
+    if (!prefs) return;
+
+    var jobs = getJobs();
+
+    // Calculate scores
+    jobs.forEach(function (j) { j._matchScore = calculateMatchScore(j, prefs); });
+
+    // Filter > 0
+    var matches = jobs.filter(function (j) { return j._matchScore > 0; });
+
+    // Sort: Match Score Desc -> Posted Days Asc
+    matches.sort(function (a, b) {
+      if (b._matchScore !== a._matchScore) {
+        return b._matchScore - a._matchScore;
+      }
+      return (a.postedDaysAgo || 0) - (b.postedDaysAgo || 0);
+    });
+
+    // Top 10
+    var top10 = matches.slice(0, 10);
+
+    // Save
+    var today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('jobTrackerDigest_' + today, JSON.stringify(top10));
+
+    render('/digest');
   }
 
   function getProofHTML() {
     return (
       '<div class="proof-placeholder">' +
-        '<h1>Proof</h1>' +
-        '<p>Placeholder for artifact collection.</p>' +
+      '<h1>Proof</h1>' +
+      '<p>Placeholder for artifact collection.</p>' +
       '</div>'
     );
   }
@@ -500,13 +600,13 @@
     }).join('');
     return (
       '<div class="modal-overlay is-hidden" id="job-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">' +
-        '<div class="modal">' +
-          '<h2 class="modal-title" id="modal-title">' + escapeHtml(job.title) + '</h2>' +
-          '<div class="modal-company">' + escapeHtml(job.company) + '</div>' +
-          '<div class="modal-description">' + escapeHtml(job.description || '') + '</div>' +
-          (skills ? '<div class="modal-skills-title">Skills</div><div class="modal-skills">' + skills + '</div>' : '') +
-          '<button type="button" class="btn btn-secondary modal-close" id="modal-close">Close</button>' +
-        '</div>' +
+      '<div class="modal">' +
+      '<h2 class="modal-title" id="modal-title">' + escapeHtml(job.title) + '</h2>' +
+      '<div class="modal-company">' + escapeHtml(job.company) + '</div>' +
+      '<div class="modal-description">' + escapeHtml(job.description || '') + '</div>' +
+      (skills ? '<div class="modal-skills-title">Skills</div><div class="modal-skills">' + skills + '</div>' : '') +
+      '<button type="button" class="btn btn-secondary modal-close" id="modal-close">Close</button>' +
+      '</div>' +
       '</div>'
     );
   }
@@ -548,19 +648,67 @@
 
   function bindPageEvents(path) {
     if (!main) return;
-    
+
+    if (path === '/digest') {
+      var btnGen = document.getElementById('btn-generate-digest');
+      if (btnGen) {
+        btnGen.addEventListener('click', generateDigest);
+      }
+
+      var btnCopy = document.getElementById('btn-copy-digest');
+      if (btnCopy) {
+        btnCopy.addEventListener('click', function () {
+          var today = new Date().toISOString().slice(0, 10);
+          var stored = localStorage.getItem('jobTrackerDigest_' + today);
+          if (!stored) return;
+          var jobs = JSON.parse(stored);
+
+          var text = "My 9AM Job Digest - " + new Date().toLocaleDateString() + "\n\n";
+          jobs.forEach(function (j, i) {
+            text += (i + 1) + ". " + j.title + " at " + j.company + " (" + j._matchScore + "% Match)\n";
+            text += "   Location: " + j.location + "\n";
+            text += "   Link: #\n\n";
+          });
+
+          navigator.clipboard.writeText(text).then(function () {
+            alert('Digest copied to clipboard!');
+          }, function () {
+            alert('Failed to copy. ' + text); // Fallback
+          });
+        });
+      }
+
+      var btnEmail = document.getElementById('btn-email-digest');
+      if (btnEmail) {
+        btnEmail.addEventListener('click', function () {
+          var today = new Date().toISOString().slice(0, 10);
+          var stored = localStorage.getItem('jobTrackerDigest_' + today);
+          if (!stored) return;
+          var jobs = JSON.parse(stored);
+
+          var subject = encodeURIComponent("My 9AM Job Digest");
+          var body = "Here are my top " + jobs.length + " job matches for today:\n\n";
+          jobs.forEach(function (j) {
+            body += "- " + j.title + " @ " + j.company + " (" + j._matchScore + "% Match)\n";
+          });
+
+          window.location.href = "mailto:?subject=" + subject + "&body=" + encodeURIComponent(body);
+        });
+      }
+    }
+
     if (path === '/settings') {
       var range = document.getElementById('min-match-score');
       var valDisplay = document.getElementById('score-val');
       if (range && valDisplay) {
-        range.addEventListener('input', function() {
+        range.addEventListener('input', function () {
           valDisplay.textContent = range.value;
         });
       }
-      
+
       var form = document.getElementById('settings-form');
       if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
           e.preventDefault();
           var formData = new FormData(form);
           var prefs = {
@@ -598,7 +746,7 @@
       }
 
       if (keywordEl) { // debounce could be added
-        keywordEl.addEventListener('input', applyFilters); 
+        keywordEl.addEventListener('input', applyFilters);
       }
       if (locationEl) locationEl.addEventListener('change', applyFilters);
       if (modeEl) modeEl.addEventListener('change', applyFilters);
@@ -658,17 +806,17 @@
     var isNav = a.classList.contains('app-nav-link');
     var isBrand = a.classList.contains('app-nav-brand');
     var isCta = a.classList.contains('landing-cta') || a.classList.contains('btn-primary'); // Handle checks for settings link
-    
+
     // Only intercept internal links
     if (path.indexOf('://') !== -1) return;
     if (path.indexOf('/') !== 0) return;
-    
+
     // Allow navigation if route exists or simple link
     if (ROUTES[path] === undefined && path !== '/') return;
 
     e.preventDefault();
     go(path);
-    
+
     if (navLinksContainer && navLinksContainer.classList.contains('is-open')) {
       navLinksContainer.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
@@ -678,19 +826,19 @@
   function handleMainClick(e) {
     // Delegate click for dynamic content like cards
     handleJobCardClick(e);
-    
+
     // Also handle links inside main (like Empty State cta or Banner cta)
     var a = e.target.closest('a');
     if (a && a.getAttribute('href') && a.getAttribute('href').startsWith('/')) {
-       // Only if it's not handled by handleJobCardClick (which handles apply button which is an anchor but target _blank)
-       // Apply button has target=_blank, so we skip it.
-       if (a.target === '_blank') return;
-       e.preventDefault();
-       go(a.getAttribute('href'));
+      // Only if it's not handled by handleJobCardClick (which handles apply button which is an anchor but target _blank)
+      // Apply button has target=_blank, so we skip it.
+      if (a.target === '_blank') return;
+      e.preventDefault();
+      go(a.getAttribute('href'));
     }
   }
 
-  window.addEventListener('popstate', function() {
+  window.addEventListener('popstate', function () {
     var path = getPath();
     if (ROUTES[path] !== undefined) {
       render(path);

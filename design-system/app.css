@@ -45,7 +45,7 @@
   padding-bottom: var(--spacing-xs);
   border-bottom: 2px solid transparent;
   transition: border-color var(--transition-speed) var(--transition-easing),
-              color var(--transition-speed) var(--transition-easing);
+    color var(--transition-speed) var(--transition-easing);
 }
 
 .app-nav-links a:hover {
@@ -71,7 +71,7 @@
   cursor: pointer;
   color: var(--color-text-primary);
   transition: border-color var(--transition-speed) var(--transition-easing),
-              background-color var(--transition-speed) var(--transition-easing);
+    background-color var(--transition-speed) var(--transition-easing);
 }
 
 .app-nav-toggle:hover {
@@ -598,7 +598,8 @@
 
 /* Toggle Switch */
 .toggle-group {
-  margin-left: auto; /* Push to right in flex container if space permits */
+  margin-left: auto;
+  /* Push to right in flex container if space permits */
   padding-left: var(--spacing-md);
   border-left: 1px solid var(--border-color);
 }
@@ -640,15 +641,136 @@
   border-radius: 50%;
 }
 
-input:checked + .toggle-slider {
+input:checked+.toggle-slider {
   background-color: var(--color-accent);
 }
 
-input:checked + .toggle-slider:before {
+input:checked+.toggle-slider:before {
   transform: translateX(20px);
 }
 
-.toggle-label {
-  font-weight: normal !important;
-  cursor: pointer;
+/* Digest Page */
+.digest-landing {
+  text-align: center;
+  padding: var(--spacing-xxl) var(--spacing-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.digest-landing h1 {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+.digest-landing p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.digest-page {
+  background-color: #f3f4f6;
+  /* Off-white for email bg feel */
+  min-height: calc(100vh - 60px);
+  padding: var(--spacing-lg) var(--spacing-md);
+  display: flex;
+  justify-content: center;
+}
+
+.digest-container {
+  width: 100%;
+  max-width: 600px;
+}
+
+.digest-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
+}
+
+.digest-header {
+  background-color: #f9fafb;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.digest-header h2 {
+  font-size: 1.25rem;
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-text-primary);
+}
+
+.digest-header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.digest-body {
+  padding: 0;
+}
+
+.digest-job-item {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.digest-job-item:last-child {
+  border-bottom: none;
+}
+
+.digest-job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.digest-job-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.digest-job-meta {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.digest-job-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.digest-footer {
+  background-color: #f9fafb;
+  padding: var(--spacing-md);
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+}
+
+.digest-footer p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.digest-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+/* Helper for mock apply button in digest */
+.btn-apply-mock {
+  padding: 4px 12px;
+  font-size: 0.75rem;
 }
