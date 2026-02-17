@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/((?!design-system|js|.*\\.html).*)", "destination": "/index.html" }
+  ]
+}

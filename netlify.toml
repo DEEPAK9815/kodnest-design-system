@@ -1,0 +1,5 @@
+# SPA: serve index.html for all routes (existing files like /design-system/*, /js/* are still served)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

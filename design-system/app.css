@@ -1,0 +1,173 @@
+/* KodNest Premium Build System - Job Notification Tracker App Shell */
+
+/* App layout */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+}
+
+/* Top navigation bar */
+.app-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: #FFFFFF;
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.app-nav-brand {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color var(--transition-speed) var(--transition-easing);
+}
+
+.app-nav-brand:hover {
+  color: var(--color-accent);
+}
+
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.app-nav-links a {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 2px solid transparent;
+  transition: border-color var(--transition-speed) var(--transition-easing),
+              color var(--transition-speed) var(--transition-easing);
+}
+
+.app-nav-links a:hover {
+  color: var(--color-accent);
+}
+
+.app-nav-links a.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Hamburger (mobile) */
+.app-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-speed) var(--transition-easing),
+              background-color var(--transition-speed) var(--transition-easing);
+}
+
+.app-nav-toggle:hover {
+  border-color: var(--color-accent);
+  background-color: rgba(139, 0, 0, 0.05);
+}
+
+.app-nav-toggle-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.app-nav-toggle-icon span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background-color: var(--color-text-primary);
+  transition: transform var(--transition-speed) var(--transition-easing);
+}
+
+.app-nav-toggle[aria-expanded="true"] .app-nav-toggle-icon span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.app-nav-toggle[aria-expanded="true"] .app-nav-toggle-icon span:nth-child(2) {
+  opacity: 0;
+}
+
+.app-nav-toggle[aria-expanded="true"] .app-nav-toggle-icon span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Main content area */
+.app-main {
+  flex: 1;
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.app-placeholder {
+  max-width: var(--max-width-text);
+}
+
+.app-placeholder-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading-xl);
+  font-weight: 400;
+  line-height: var(--line-height-heading);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.app-placeholder-subtext {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  color: rgba(17, 17, 17, 0.6);
+  margin: 0;
+}
+
+/* Responsive: collapse nav into hamburger */
+@media (max-width: 768px) {
+  .app-nav-toggle {
+    display: flex;
+  }
+
+  .app-nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--spacing-md);
+    background-color: #FFFFFF;
+    border-bottom: var(--border-width) solid var(--border-color);
+    gap: 0;
+    display: none;
+  }
+
+  .app-nav-links.is-open {
+    display: flex;
+  }
+
+  .app-nav-links a {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: none;
+    border-left: 3px solid transparent;
+  }
+
+  .app-nav-links a.active {
+    border-left-color: var(--color-accent);
+    border-bottom-color: transparent;
+  }
+
+  .app-nav {
+    position: relative;
+  }
+}
