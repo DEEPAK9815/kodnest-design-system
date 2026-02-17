@@ -132,6 +132,115 @@
   margin: 0;
 }
 
+/* Landing page */
+.landing {
+  max-width: var(--max-width-text);
+  padding: var(--spacing-xl) 0;
+}
+
+.landing-headline {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading-xl);
+  font-weight: 400;
+  line-height: var(--line-height-heading);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md);
+}
+
+.landing-subtext {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  color: rgba(17, 17, 17, 0.7);
+  margin: 0 0 var(--spacing-lg);
+}
+
+.landing-cta {
+  display: inline-block;
+}
+
+/* Settings form */
+.settings-page {
+  max-width: var(--max-width-text);
+}
+
+.settings-page h1 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading-xl);
+  font-weight: 400;
+  margin: 0 0 var(--spacing-lg);
+  color: var(--color-text-primary);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.form-group label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.form-group .input,
+.form-group select.input {
+  max-width: 100%;
+}
+
+/* Empty states (premium) */
+.app-empty-state {
+  max-width: var(--max-width-text);
+  padding: var(--spacing-xl) 0;
+}
+
+.app-empty-state-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading-lg);
+  font-weight: 400;
+  line-height: var(--line-height-heading);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.app-empty-state-text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  color: rgba(17, 17, 17, 0.6);
+  margin: 0;
+}
+
+/* Proof placeholder */
+.proof-placeholder {
+  max-width: var(--max-width-text);
+  padding: var(--spacing-xl) 0;
+}
+
+.proof-placeholder h1 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading-xl);
+  font-weight: 400;
+  margin: 0 0 var(--spacing-sm);
+  color: var(--color-text-primary);
+}
+
+.proof-placeholder p {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  color: rgba(17, 17, 17, 0.6);
+  margin: 0;
+}
+
 /* Responsive: collapse nav into hamburger */
 @media (max-width: 768px) {
   .app-nav-toggle {
