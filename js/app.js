@@ -10,20 +10,20 @@
     '/proof': 'Proof'
   };
 
-  var STORAGE_KEY = 'job-notification-tracker-saved';
+  var STORAGE_KEY_SAVED = 'job-notification-tracker-saved';
+  var STORAGE_KEY_PREFS = 'jobTrackerPreferences';
+
   var filterState = {
     keyword: '',
     location: '',
     mode: '',
     experience: '',
     source: '',
-    sort: 'latest'
+    sort: 'latest',
+    showMatchesOnly: false
   };
 
-  var navLinks = document.querySelectorAll('.app-nav-links a');
-  var main = document.getElementById('app-content');
-  var toggle = document.getElementById('app-nav-toggle');
-  var navLinksContainer = document.querySelector('.app-nav-links');
+  // --- Data Access ---
 
   function getJobs() {
     return window.JOBS_DATA || [];
@@ -31,7 +31,7 @@
 
   function getSavedIds() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(STORAGE_KEY_SAVED);
       return raw ? JSON.parse(raw) : [];
     } catch (e) {
       return [];
@@ -40,7 +40,7 @@
 
   function setSavedIds(ids) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+      localStorage.setItem(STORAGE_KEY_SAVED, JSON.stringify(ids));
     } catch (e) {}
   }
 
@@ -56,18 +56,75 @@
     return getSavedIds().indexOf(jobId) !== -1;
   }
 
+  function getPreferences() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_PREFS);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function savePreferences(prefs) {
+    try {
+      localStorage.setItem(STORAGE_KEY_PREFS, JSON.stringify(prefs));
+    } catch (e) {}
+  }
+
+  // --- Match Score Engine ---
+
+  function calculateMatchScore(job, prefs) {
+    if (!prefs) return 0;
+
+    var score = 0;
+
+    // +25 if any roleKeyword appears in job.title
+    var roleKeywords = (prefs.roleKeywords || '').toLowerCase().split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var titleLower = (job.title || '').toLowerCase();
+    var titleMatch = roleKeywords.some(function(kw) { return titleLower.includes(kw); });
+    if (titleMatch) score += 25;
+
+    // +15 if any roleKeyword appears in job.description
+    var descLower = (job.description || '').toLowerCase();
+    var descMatch = roleKeywords.some(function(kw) { return descLower.includes(kw); });
+    if (descMatch) score += 15;
+
+    // +15 if job.location matches preferredLocations
+    var prefLocs = (prefs.preferredLocations || []).map(function(l) { return l.toLowerCase(); });
+    if (prefLocs.indexOf((job.location || '').toLowerCase()) !== -1) score += 15;
+
+    // +10 if job.mode matches preferredMode
+    var prefModes = (prefs.preferredMode || []).map(function(m) { return m.toLowerCase(); });
+    if (prefModes.indexOf((job.mode || '').toLowerCase()) !== -1) score += 10;
+
+    // +10 if job.experience matches experienceLevel
+    if (prefs.experienceLevel && (job.experience || '').toLowerCase() === prefs.experienceLevel.toLowerCase()) {
+      score += 10;
+    }
+
+    // +15 if overlap between job.skills and user.skills
+    var userSkills = (prefs.skills || '').toLowerCase().split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var jobSkills = (job.skills || []).map(function(s) { return s.toLowerCase(); });
+    var skillMatch = userSkills.some(function(us) { return jobSkills.indexOf(us) !== -1; });
+    if (skillMatch) score += 15;
+
+    // +5 if postedDaysAgo <= 2
+    if ((job.postedDaysAgo || 0) <= 2) score += 5;
+
+    // +5 if source is LinkedIn
+    if ((job.source || '').toLowerCase() === 'linkedin') score += 5;
+
+    return Math.min(score, 100);
+  }
+
+  // --- HTML Generators ---
+
   function getPath() {
     return window.location.pathname.replace(/\/$/, '') || '/';
   }
 
-  function postedLabel(days) {
-    if (days === 0) return 'Today';
-    if (days === 1) return '1 day ago';
-    return days + ' days ago';
-  }
-
   function escapeHtml(s) {
-    if (!s) return '';
+    if (!s && s !== 0) return '';
     var div = document.createElement('div');
     div.textContent = s;
     return div.innerHTML;
@@ -84,95 +141,100 @@
   }
 
   function getSettingsHTML() {
+    var prefs = getPreferences() || {
+      roleKeywords: '',
+      preferredLocations: [],
+      preferredMode: [],
+      experienceLevel: '',
+      skills: '',
+      minMatchScore: 40
+    };
+
+    var allLocations = ['Bangalore', 'Chennai', 'Hyderabad', 'Pune', 'Mumbai', 'Noida', 'Gurgaon', 'Coimbatore', 'Remote', 'Delhi', 'Kolkata'];
+    var modes = ['Remote', 'Hybrid', 'Onsite'];
+    var experiences = ['Fresher', '0-1', '1-3', '3-5', '5+'];
+
+    var locOptions = allLocations.map(function(l) {
+      var selected = prefs.preferredLocations.indexOf(l) !== -1 ? ' selected' : '';
+      return '<option value="' + escapeHtml(l) + '"' + selected + '>' + escapeHtml(l) + '</option>';
+    }).join('');
+
+    var modeCheckboxes = modes.map(function(m) {
+      var checked = prefs.preferredMode.indexOf(m) !== -1 ? ' checked' : '';
+      return (
+        '<label class="checkbox-label">' +
+          '<input type="checkbox" name="preferredMode" value="' + escapeHtml(m) + '"' + checked + '> ' + escapeHtml(m) +
+        '</label>'
+      );
+    }).join('');
+
+    var expOptions = experiences.map(function(e) {
+      var selected = prefs.experienceLevel === e ? ' selected' : '';
+      return '<option value="' + escapeHtml(e) + '"' + selected + '>' + escapeHtml(e) + '</option>';
+    }).join('');
+
     return (
       '<div class="settings-page">' +
         '<h1>Settings</h1>' +
-        '<form class="settings-form" action="#" method="get" novalidate>' +
+        '<form class="settings-form" id="settings-form" novalidate>' +
           '<div class="form-group">' +
-            '<label for="role-keywords">Role keywords</label>' +
-            '<input type="text" id="role-keywords" class="input" name="role-keywords" placeholder="e.g. Frontend, React, Product Manager">' +
+            '<label for="role-keywords">Role Keywords (comma-separated)</label>' +
+            '<input type="text" id="role-keywords" class="input" name="roleKeywords" value="' + escapeHtml(prefs.roleKeywords) + '" placeholder="e.g. Frontend, React, Product Manager">' +
           '</div>' +
           '<div class="form-group">' +
-            '<label for="locations">Preferred locations</label>' +
-            '<input type="text" id="locations" class="input" name="locations" placeholder="e.g. New York, Remote">' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label for="mode">Mode</label>' +
-            '<select id="mode" class="input" name="mode">' +
-              '<option value="">Select</option>' +
-              '<option value="remote">Remote</option>' +
-              '<option value="hybrid">Hybrid</option>' +
-              '<option value="onsite">Onsite</option>' +
+            '<label for="locations">Preferred Locations (hold Ctrl to select multiple)</label>' +
+            '<select id="locations" class="input" name="preferredLocations" multiple size="5">' +
+               locOptions +
             '</select>' +
           '</div>' +
           '<div class="form-group">' +
-            '<label for="experience">Experience level</label>' +
-            '<select id="experience" class="input" name="experience">' +
+            '<label>Preferred Mode</label>' +
+            '<div class="checkbox-group">' + modeCheckboxes + '</div>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label for="experience">Experience Level</label>' +
+            '<select id="experience" class="input" name="experienceLevel">' +
               '<option value="">Select</option>' +
-              '<option value="entry">Entry</option>' +
-              '<option value="mid">Mid</option>' +
-              '<option value="senior">Senior</option>' +
-              '<option value="lead">Lead</option>' +
+              expOptions +
             '</select>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label for="skills">Skills (comma-separated)</label>' +
+            '<input type="text" id="skills" class="input" name="skills" value="' + escapeHtml(prefs.skills) + '" placeholder="e.g. Java, Python, SQL">' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label for="min-match-score">Minimum Match Score: <span id="score-val">' + prefs.minMatchScore + '</span></label>' +
+            '<input type="range" id="min-match-score" class="input-range" name="minMatchScore" min="0" max="100" value="' + prefs.minMatchScore + '">' +
+          '</div>' +
+          '<div class="form-actions">' +
+            '<button type="submit" class="btn btn-primary">Save Preferences</button>' +
           '</div>' +
         '</form>' +
       '</div>'
     );
   }
 
-  function filterAndSortJobs(jobs, state) {
-    var list = jobs.slice();
-    var kw = (state.keyword || '').toLowerCase().trim();
-    if (kw) {
-      list = list.filter(function (j) {
-        return (j.title && j.title.toLowerCase().indexOf(kw) !== -1) ||
-               (j.company && j.company.toLowerCase().indexOf(kw) !== -1);
-      });
-    }
-    if (state.location) {
-      list = list.filter(function (j) { return (j.location || '').toLowerCase() === state.location.toLowerCase(); });
-    }
-    if (state.mode) {
-      list = list.filter(function (j) { return (j.mode || '').toLowerCase() === state.mode.toLowerCase(); });
-    }
-    if (state.experience) {
-      list = list.filter(function (j) { return (j.experience || '').toLowerCase() === state.experience.toLowerCase(); });
-    }
-    if (state.source) {
-      list = list.filter(function (j) { return (j.source || '').toLowerCase() === state.source.toLowerCase(); });
-    }
-    if (state.sort === 'oldest') {
-      list.sort(function (a, b) { return (b.postedDaysAgo || 0) - (a.postedDaysAgo || 0); });
-    } else {
-      list.sort(function (a, b) { return (a.postedDaysAgo || 0) - (b.postedDaysAgo || 0); });
-    }
-    return list;
-  }
-
-  function getUnique(arr) {
-    var seen = {};
-    return arr.filter(function (x) {
-      var k = (x || '').toLowerCase();
-      if (seen[k]) return false;
-      seen[k] = true;
-      return true;
-    }).sort();
-  }
-
-  function buildFilterOptions(jobs) {
-    var locations = getUnique(jobs.map(function (j) { return j.location; }));
-    var modes = getUnique(jobs.map(function (j) { return j.mode; }));
-    var experiences = getUnique(jobs.map(function (j) { return j.experience; }));
-    var sources = getUnique(jobs.map(function (j) { return j.source; }));
-    return { locations: locations, modes: modes, experiences: experiences, sources: sources };
+  function getMatchBadgeHTML(score) {
+    var cls = 'match-badge-neutral';
+    if (score >= 80) cls = 'match-badge-high';
+    else if (score >= 60) cls = 'match-badge-amber';
+    else if (score < 40) cls = 'match-badge-low';
+    
+    return '<span class="match-badge ' + cls + '">' + score + '% Match</span>';
   }
 
   function jobCardHTML(job, showSaveButton) {
     var saved = isSaved(job.id);
     var saveLabel = saved ? 'Unsave' : 'Save';
+    var prefs = getPreferences();
+    var matchScore = prefs ? calculateMatchScore(job, prefs) : null;
+
     return (
       '<div class="job-card" data-job-id="' + escapeHtml(job.id) + '">' +
-        '<h3 class="job-card-title">' + escapeHtml(job.title) + '</h3>' +
+        '<div class="job-card-header">' +
+          '<h3 class="job-card-title">' + escapeHtml(job.title) + '</h3>' +
+          (matchScore !== null ? getMatchBadgeHTML(matchScore) : '') +
+        '</div>' +
         '<div class="job-card-company">' + escapeHtml(job.company) + '</div>' +
         '<div class="job-card-meta">' +
           escapeHtml(job.location || '') + ' · ' + escapeHtml(job.mode || '') + ' · ' + escapeHtml(job.experience || '') + ' · ' + escapeHtml(job.salaryRange || '') +
@@ -192,10 +254,89 @@
     );
   }
 
+  function filterAndSortJobs(jobs, state) {
+    var list = jobs.slice();
+    var prefs = getPreferences();
+
+    // Calculate match scores for all jobs first if prefs exist
+    if (prefs) {
+      list.forEach(function(j) {
+        j._matchScore = calculateMatchScore(j, prefs);
+      });
+    }
+
+    // Filter by match threshold if toggle is on
+    if (state.showMatchesOnly && prefs) {
+      var threshold = parseInt(prefs.minMatchScore || 40, 10);
+      list = list.filter(function(j) {
+        return (j._matchScore || 0) >= threshold;
+      });
+    }
+
+    // Keyword
+    var kw = (state.keyword || '').toLowerCase().trim();
+    if (kw) {
+      list = list.filter(function (j) {
+        return (j.title && j.title.toLowerCase().indexOf(kw) !== -1) ||
+               (j.company && j.company.toLowerCase().indexOf(kw) !== -1);
+      });
+    }
+    // Location
+    if (state.location) {
+      list = list.filter(function (j) { return (j.location || '').toLowerCase() === state.location.toLowerCase(); });
+    }
+    // Mode
+    if (state.mode) {
+      list = list.filter(function (j) { return (j.mode || '').toLowerCase() === state.mode.toLowerCase(); });
+    }
+    // Experience
+    if (state.experience) {
+      list = list.filter(function (j) { return (j.experience || '').toLowerCase() === state.experience.toLowerCase(); });
+    }
+    // Source
+    if (state.source) {
+      list = list.filter(function (j) { return (j.source || '').toLowerCase() === state.source.toLowerCase(); });
+    }
+
+    // Sort
+    if (state.sort === 'oldest') {
+      list.sort(function (a, b) { return (b.postedDaysAgo || 0) - (a.postedDaysAgo || 0); });
+    } else if (state.sort === 'match') {
+      list.sort(function (a, b) { return (b._matchScore || 0) - (a._matchScore || 0); });
+    } else if (state.sort === 'salary') {
+      // Simple salary extract (heuristic)
+      function extractSalary(s) {
+        if (!s) return 0;
+        var m = s.match(/(\d+)/);
+        return m ? parseInt(m[1], 10) : 0;
+      }
+      list.sort(function (a, b) { return extractSalary(b.salaryRange) - extractSalary(a.salaryRange); });
+    } else {
+      // Latest
+      list.sort(function (a, b) { return (a.postedDaysAgo || 0) - (b.postedDaysAgo || 0); });
+    }
+
+    return list;
+  }
+
   function getDashboardHTML(state) {
     var jobs = getJobs();
+    var prefs = getPreferences();
+    
+    // Add banner if no prefs
+    var bannerHTML = '';
+    if (!prefs) {
+      bannerHTML = (
+        '<div class="preference-banner">' +
+          '<p>Set your preferences to activate intelligent matching.</p>' +
+          '<a href="/settings" class="btn btn-sm btn-primary">Setup</a>' +
+        '</div>'
+      );
+    }
+
     var opts = buildFilterOptions(jobs);
-    var filtered = filterAndSortJobs(jobs, state);
+    var filtered = filterAndSortJobs(jobs, state); // This adds _matchScore if prefs exist
+    
     var locOpts = opts.locations.map(function (l) {
       return '<option value="' + escapeHtml(l) + '"' + (state.location === l ? ' selected' : '') + '>' + escapeHtml(l) + '</option>';
     }).join('');
@@ -208,10 +349,19 @@
     var srcOpts = opts.sources.map(function (s) {
       return '<option value="' + escapeHtml(s) + '"' + (state.source === s ? ' selected' : '') + '>' + escapeHtml(s) + '</option>';
     }).join('');
+
     var cards = filtered.map(function (j) { return jobCardHTML(j, true); }).join('');
+    var emptyState = (
+      '<div class="app-empty-state">' +
+         '<h2 class="app-empty-state-title">No roles match your criteria</h2>' +
+         '<p class="app-empty-state-text">Adjust filters or lower threshold.</p>' +
+      '</div>'
+    );
+
     return (
       '<div class="dashboard-page">' +
         '<h1>Dashboard</h1>' +
+        bannerHTML + 
         '<div class="filter-bar">' +
           '<div class="filter-group">' +
             '<label for="filter-keyword">Keyword</label>' +
@@ -245,19 +395,62 @@
             '<label for="filter-sort">Sort</label>' +
             '<select id="filter-sort" class="input">' +
               '<option value="latest"' + (state.sort === 'latest' ? ' selected' : '') + '>Latest</option>' +
+              '<option value="match"' + (state.sort === 'match' ? ' selected' : '') + '>Match Score</option>' +
+              '<option value="salary"' + (state.sort === 'salary' ? ' selected' : '') + '>Salary</option>' +
               '<option value="oldest"' + (state.sort === 'oldest' ? ' selected' : '') + '>Oldest</option>' +
             '</select>' +
           '</div>' +
+          (prefs ? 
+          '<div class="filter-group toggle-group">' +
+            '<label class="toggle-switch">' +
+              '<input type="checkbox" id="filter-show-matches" ' + (state.showMatchesOnly ? 'checked' : '') + '>' +
+              '<span class="toggle-slider"></span>' +
+            '</label>' +
+            '<label for="filter-show-matches" class="toggle-label">Show only matches</label>' +
+          '</div>' : '') +
         '</div>' +
-        '<div class="jobs-list">' + (cards || '<p class="app-empty-state-text">No jobs match your filters.</p>') + '</div>' +
+        '<div class="jobs-list">' + (cards || emptyState) + '</div>' +
       '</div>'
     );
   }
+
+  // --- Helpers ---
+
+  function postedLabel(days) {
+    if (days === 0) return 'Today';
+    if (days === 1) return '1 day ago';
+    return days + ' days ago';
+  }
+
+  function getUnique(arr) {
+    var seen = {};
+    return arr.filter(function (x) {
+      var k = (x || '').toLowerCase();
+      if (seen[k]) return false;
+      seen[k] = true;
+      return true;
+    }).sort();
+  }
+
+  function buildFilterOptions(jobs) {
+    var locations = getUnique(jobs.map(function (j) { return j.location; }));
+    var modes = getUnique(jobs.map(function (j) { return j.mode; }));
+    var experiences = getUnique(jobs.map(function (j) { return j.experience; }));
+    var sources = getUnique(jobs.map(function (j) { return j.source; }));
+    return { locations: locations, modes: modes, experiences: experiences, sources: sources };
+  }
+
+  // --- Other Pages ---
 
   function getSavedHTML() {
     var jobs = getJobs();
     var savedIds = getSavedIds();
     var savedJobs = jobs.filter(function (j) { return savedIds.indexOf(j.id) !== -1; });
+    var prefs = getPreferences();
+    // Calculate score for display
+    if (prefs) {
+      savedJobs.forEach(function(j) { j._matchScore = calculateMatchScore(j, prefs); });
+    }
     var cards = savedJobs.map(function (j) { return jobCardHTML(j, true); }).join('');
     return (
       '<div class="saved-page">' +
@@ -318,6 +511,13 @@
     );
   }
 
+  // --- Interaction & Event Binding ---
+
+  var main = document.getElementById('app-content');
+  var navLinks = document.querySelectorAll('.app-nav-links a');
+  var toggle = document.getElementById('app-nav-toggle');
+  var navLinksContainer = document.querySelector('.app-nav-links');
+
   function showModal(job) {
     var existing = document.getElementById('job-modal');
     if (existing) existing.remove();
@@ -348,6 +548,35 @@
 
   function bindPageEvents(path) {
     if (!main) return;
+    
+    if (path === '/settings') {
+      var range = document.getElementById('min-match-score');
+      var valDisplay = document.getElementById('score-val');
+      if (range && valDisplay) {
+        range.addEventListener('input', function() {
+          valDisplay.textContent = range.value;
+        });
+      }
+      
+      var form = document.getElementById('settings-form');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var formData = new FormData(form);
+          var prefs = {
+            roleKeywords: formData.get('roleKeywords'),
+            preferredLocations: formData.getAll('preferredLocations'),
+            preferredMode: formData.getAll('preferredMode'),
+            experienceLevel: formData.get('experienceLevel'),
+            skills: formData.get('skills'),
+            minMatchScore: formData.get('minMatchScore')
+          };
+          savePreferences(prefs);
+          alert('Preferences saved!');
+        });
+      }
+    }
+
     if (path === '/dashboard') {
       var keywordEl = document.getElementById('filter-keyword');
       var locationEl = document.getElementById('filter-location');
@@ -355,6 +584,8 @@
       var experienceEl = document.getElementById('filter-experience');
       var sourceEl = document.getElementById('filter-source');
       var sortEl = document.getElementById('filter-sort');
+      var matchesToggle = document.getElementById('filter-show-matches');
+
       function applyFilters() {
         filterState.keyword = keywordEl ? keywordEl.value : '';
         filterState.location = locationEl ? locationEl.value : '';
@@ -362,17 +593,19 @@
         filterState.experience = experienceEl ? experienceEl.value : '';
         filterState.source = sourceEl ? sourceEl.value : '';
         filterState.sort = sortEl ? sortEl.value : 'latest';
+        filterState.showMatchesOnly = matchesToggle ? matchesToggle.checked : false;
         render('/dashboard');
       }
-      if (keywordEl) {
-        keywordEl.addEventListener('input', applyFilters);
-        keywordEl.addEventListener('change', applyFilters);
+
+      if (keywordEl) { // debounce could be added
+        keywordEl.addEventListener('input', applyFilters); 
       }
       if (locationEl) locationEl.addEventListener('change', applyFilters);
       if (modeEl) modeEl.addEventListener('change', applyFilters);
       if (experienceEl) experienceEl.addEventListener('change', applyFilters);
       if (sourceEl) sourceEl.addEventListener('change', applyFilters);
       if (sortEl) sortEl.addEventListener('change', applyFilters);
+      if (matchesToggle) matchesToggle.addEventListener('change', applyFilters);
     }
   }
 
@@ -391,7 +624,7 @@
       e.preventDefault();
       toggleSaved(jobId);
       var path = getPath();
-      if (path === '/dashboard') render('/dashboard');
+      if (path === '/dashboard') render('/dashboard'); // re-render to update label
       if (path === '/saved') render('/saved');
     }
   }
@@ -424,18 +657,40 @@
     var path = (a.getAttribute('href') || '').replace(/^#/, '') || '/';
     var isNav = a.classList.contains('app-nav-link');
     var isBrand = a.classList.contains('app-nav-brand');
-    if (!isNav && !isBrand) return;
-    if (path.indexOf('://') !== -1 || path[0] !== '/') return;
+    var isCta = a.classList.contains('landing-cta') || a.classList.contains('btn-primary'); // Handle checks for settings link
+    
+    // Only intercept internal links
+    if (path.indexOf('://') !== -1) return;
+    if (path.indexOf('/') !== 0) return;
+    
+    // Allow navigation if route exists or simple link
     if (ROUTES[path] === undefined && path !== '/') return;
+
     e.preventDefault();
     go(path);
+    
     if (navLinksContainer && navLinksContainer.classList.contains('is-open')) {
       navLinksContainer.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
     }
   }
 
-  function handlePopState() {
+  function handleMainClick(e) {
+    // Delegate click for dynamic content like cards
+    handleJobCardClick(e);
+    
+    // Also handle links inside main (like Empty State cta or Banner cta)
+    var a = e.target.closest('a');
+    if (a && a.getAttribute('href') && a.getAttribute('href').startsWith('/')) {
+       // Only if it's not handled by handleJobCardClick (which handles apply button which is an anchor but target _blank)
+       // Apply button has target=_blank, so we skip it.
+       if (a.target === '_blank') return;
+       e.preventDefault();
+       go(a.getAttribute('href'));
+    }
+  }
+
+  window.addEventListener('popstate', function() {
     var path = getPath();
     if (ROUTES[path] !== undefined) {
       render(path);
@@ -443,7 +698,7 @@
     } else {
       go('/');
     }
-  }
+  });
 
   if (toggle && navLinksContainer) {
     toggle.addEventListener('click', function () {
@@ -457,23 +712,11 @@
     appNav.addEventListener('click', handleClick);
   }
 
-  function handleMainClick(e) {
-    var a = e.target.closest('a');
-    if (!a || !a.href) return;
-    var href = a.getAttribute('href');
-    if (href.indexOf('://') !== -1 || href.indexOf('/') !== 0) return;
-    if (ROUTES[href] === undefined && href !== '/') return;
-    e.preventDefault();
-    go(href);
-  }
-
   if (main) {
     main.addEventListener('click', handleMainClick);
-    main.addEventListener('click', handleJobCardClick);
   }
 
-  window.addEventListener('popstate', handlePopState);
-
+  // Initial load
   var initialPath = getPath();
   if (ROUTES[initialPath] !== undefined || initialPath === '') {
     render(initialPath);
@@ -481,4 +724,5 @@
   } else {
     go('/');
   }
+
 })();
