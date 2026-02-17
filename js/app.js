@@ -12,6 +12,8 @@
 
   var STORAGE_KEY_SAVED = 'job-notification-tracker-saved';
   var STORAGE_KEY_PREFS = 'jobTrackerPreferences';
+  var STORAGE_KEY_STATUS = 'jobTrackerStatus';
+  var STORAGE_KEY_UPDATES = 'jobTrackerStatusUpdates';
 
   var filterState = {
     keyword: '',
@@ -19,6 +21,7 @@
     mode: '',
     experience: '',
     source: '',
+    status: '', // New filter
     sort: 'latest',
     showMatchesOnly: false
   };
@@ -27,6 +30,56 @@
 
   function getJobs() {
     return window.JOBS_DATA || [];
+  }
+
+  function getStatusMap() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_STATUS);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function getStatus(jobId) {
+    var map = getStatusMap();
+    return map[jobId] || 'not-applied';
+  }
+
+  function setStatus(jobId, status) {
+    var map = getStatusMap();
+    var old = map[jobId] || 'not-applied';
+    if (old === status) return; // No change
+
+    map[jobId] = status;
+    try {
+      localStorage.setItem(STORAGE_KEY_STATUS, JSON.stringify(map));
+
+      // Log update for Digest
+      var updates = getStatusUpdates();
+      updates.unshift({
+        jobId: jobId,
+        status: status,
+        date: new Date().toISOString()
+      });
+      // Keep last 50
+      if (updates.length > 50) updates = updates.slice(0, 50);
+      localStorage.setItem(STORAGE_KEY_UPDATES, JSON.stringify(updates));
+
+      showToast('Status updated: ' + formatStatus(status));
+    } catch (e) { }
+  }
+
+  function getStatusUpdates() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_UPDATES);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function formatStatus(s) {
+    if (s === 'applied') return 'Applied';
+    if (s === 'rejected') return 'Rejected';
+    if (s === 'selected') return 'Selected';
+    return 'Not Applied';
   }
 
   function getSavedIds() {
@@ -297,6 +350,9 @@
     if (state.source) {
       list = list.filter(function (j) { return (j.source || '').toLowerCase() === state.source.toLowerCase(); });
     }
+    if (state.status) {
+      list = list.filter(function (j) { return getStatus(j.id) === state.status; });
+    }
 
     // Sort
     if (state.sort === 'oldest') {
@@ -334,21 +390,19 @@
       );
     }
 
-    var opts = buildFilterOptions(jobs);
     var filtered = filterAndSortJobs(jobs, state); // This adds _matchScore if prefs exist
+    var opts = buildFilterOptions(jobs);
 
-    var locOpts = opts.locations.map(function (l) {
-      return '<option value="' + escapeHtml(l) + '"' + (state.location === l ? ' selected' : '') + '>' + escapeHtml(l) + '</option>';
-    }).join('');
-    var modeOpts = opts.modes.map(function (m) {
-      return '<option value="' + escapeHtml(m) + '"' + (state.mode === m ? ' selected' : '') + '>' + escapeHtml(m) + '</option>';
-    }).join('');
-    var expOpts = opts.experiences.map(function (e) {
-      return '<option value="' + escapeHtml(e) + '"' + (state.experience === e ? ' selected' : '') + '>' + escapeHtml(e) + '</option>';
-    }).join('');
-    var srcOpts = opts.sources.map(function (s) {
-      return '<option value="' + escapeHtml(s) + '"' + (state.source === s ? ' selected' : '') + '>' + escapeHtml(s) + '</option>';
-    }).join('');
+    function buildOpts(items, selected) {
+      return items.map(function (s) {
+        return '<option value="' + escapeHtml(s) + '"' + (selected === s ? ' selected' : '') + '>' + escapeHtml(s) + '</option>';
+      }).join('');
+    }
+
+    var locOpts = buildOpts(opts.locations, state.location);
+    var modeOpts = buildOpts(opts.modes, state.mode);
+    var expOpts = buildOpts(opts.experiences, state.experience);
+    var srcOpts = buildOpts(opts.sources, state.source);
 
     var cards = filtered.map(function (j) { return jobCardHTML(j, true); }).join('');
     var emptyState = (
@@ -366,6 +420,16 @@
       '<div class="filter-group">' +
       '<label for="filter-keyword">Keyword</label>' +
       '<input type="text" id="filter-keyword" class="input" placeholder="Title or company" value="' + escapeHtml(state.keyword) + '">' +
+      '</div>' +
+      '<div class="filter-group">' +
+      '<label for="filter-status">Status</label>' +
+      '<select id="filter-status" class="input">' +
+      '<option value="">All</option>' +
+      '<option value="not-applied"' + (state.status === 'not-applied' ? ' selected' : '') + '>Not Applied</option>' +
+      '<option value="applied"' + (state.status === 'applied' ? ' selected' : '') + '>Applied</option>' +
+      '<option value="rejected"' + (state.status === 'rejected' ? ' selected' : '') + '>Rejected</option>' +
+      '<option value="selected"' + (state.status === 'selected' ? ' selected' : '') + '>Selected</option>' +
+      '</select>' +
       '</div>' +
       '<div class="filter-group">' +
       '<label for="filter-location">Location</label>' +
@@ -522,6 +586,39 @@
       );
     }).join('');
 
+    // Recent Updates Section
+    var updates = getStatusUpdates();
+    var allJobs = getJobs();
+    var updatesHTML = '';
+
+    if (updates.length > 0) {
+      // Filter for recent (last 3 for simple display)
+      var recent = updates.slice(0, 3);
+      var updateItems = recent.map(function (u) {
+        var job = allJobs.find(function (j) { return j.id === u.jobId; });
+        if (!job) return '';
+        var statusLabel = formatStatus(u.status);
+        var dateLabel = new Date(u.date).toLocaleDateString();
+        var badgeClass = 'status-badge-' + u.status;
+
+        return (
+          '<div class="digest-update-item ' + badgeClass + '">' +
+          '<div><strong>' + escapeHtml(job.title) + '</strong> @ ' + escapeHtml(job.company) + '</div>' +
+          '<div class="text-xs text-muted">Changed to <strong>' + statusLabel + '</strong> on ' + dateLabel + '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      if (updateItems) {
+        updatesHTML = (
+          '<div class="digest-section">' +
+          '<h3 class="digest-section-title">Recent Status Updates</h3>' +
+          '<div class="digest-updates-list">' + updateItems + '</div>' +
+          '</div>'
+        );
+      }
+    }
+
     return (
       '<div class="digest-page">' +
       '<div class="digest-container">' +
@@ -530,7 +627,10 @@
       '<h2>Top 10 jobs for you</h2>' +
       '<p>9AM Digest • ' + new Date().toLocaleDateString() + '</p>' +
       '</div>' +
-      '<div class="digest-body">' + jobItems + '</div>' +
+      '<div class="digest-body">' +
+      jobItems +
+      updatesHTML +
+      '</div>' +
       '<div class="digest-footer">' +
       '<p>This digest was generated based on your preferences.</p>' +
       '</div>' +
