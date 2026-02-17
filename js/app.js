@@ -9,7 +9,8 @@
     '/settings': 'Settings',
     '/proof': 'Proof',
     '/jt/07-test': 'Test Checklist',
-    '/jt/08-ship': 'Ship'
+    '/jt/08-ship': 'Ship',
+    '/jt/proof': 'Final Proof'
   };
 
   var STORAGE_KEY_SAVED = 'job-notification-tracker-saved';
@@ -796,11 +797,100 @@
     );
   }
 
+  // --- Final Proof Logic ---
+  var STORAGE_KEY_PROOF = 'jobTrackerProofLinks';
+
+  function getProofLinks() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_PROOF);
+      return raw ? JSON.parse(raw) : { lovable: '', github: '', deployed: '' };
+    } catch (e) { return { lovable: '', github: '', deployed: '' }; }
+  }
+
+  function saveProofLinks(links) {
+    localStorage.setItem(STORAGE_KEY_PROOF, JSON.stringify(links));
+    render('/jt/proof');
+  }
+
+  function getProjectStatus() {
+    var links = getProofLinks();
+    var hasLinks = links.lovable && links.github && links.deployed;
+
+    var testStatus = getTestStatus();
+    var testCount = 0;
+    TEST_ITEMS.forEach(function (item) { if (testStatus[item.id]) testCount++; });
+    var allTestsPassed = testCount === TEST_ITEMS.length;
+
+    if (hasLinks && allTestsPassed) return 'Shipped';
+    if (testCount > 0 || links.lovable || links.github || links.deployed) return 'In Progress';
+    return 'Not Started';
+  }
+
   function getProofHTML() {
+    var links = getProofLinks();
+    var status = getProjectStatus();
+    var statusClass = 'status-not-started';
+    if (status === 'In Progress') statusClass = 'status-in-progress';
+    if (status === 'Shipped') statusClass = 'status-shipped';
+
+    var steps = [
+      { label: 'Setup & Routing', status: 'Completed' },
+      { label: 'Job Dashboard', status: 'Completed' },
+      { label: 'Saved Jobs', status: 'Completed' },
+      { label: 'Daily Digest', status: 'Completed' },
+      { label: 'Settings', status: 'Completed' },
+      { label: 'Status Tracking', status: 'Completed' },
+      { label: 'Test Checklist', status: 'Completed' },
+      { label: 'Ship Lock', status: 'Completed' }
+    ];
+
+    var stepsHTML = steps.map(function (s) {
+      return (
+        '<div class="proof-step-item">' +
+        '<span class="proof-step-label">' + escapeHtml(s.label) + '</span>' +
+        '<span class="proof-step-status status-completed">Completed</span>' +
+        '</div>'
+      );
+    }).join('');
+
     return (
-      '<div class="proof-placeholder">' +
-      '<h1>Proof</h1>' +
-      '<p>Placeholder for artifact collection.</p>' +
+      '<div class="proof-page">' +
+      '<div class="proof-container">' +
+      '<div class="proof-header">' +
+      '<h1>Project 1 — Job Notification Tracker</h1>' +
+      '<div class="project-status-badge ' + statusClass + '">' + status + '</div>' +
+      '</div>' +
+
+      '<div class="proof-section">' +
+      '<h3>Step Completion Summary</h3>' +
+      '<div class="proof-steps-list">' + stepsHTML + '</div>' +
+      '</div>' +
+
+      '<div class="proof-section">' +
+      '<h3>Artifact Collection</h3>' +
+      '<div class="proof-form">' +
+      '<div class="form-group">' +
+      '<label>Lovable Project Link</label>' +
+      '<input type="url" id="proof-lovable" class="input" placeholder="https://lovable.dev/..." value="' + escapeHtml(links.lovable) + '">' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>GitHub Repository Link</label>' +
+      '<input type="url" id="proof-github" class="input" placeholder="https://github.com/..." value="' + escapeHtml(links.github) + '">' +
+      '</div>' +
+      '<div class="form-group">' +
+      '<label>Deployed URL</label>' +
+      '<input type="url" id="proof-deployed" class="input" placeholder="https://vercel.com/..." value="' + escapeHtml(links.deployed) + '">' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+
+      '<div class="proof-actions">' +
+      '<button id="btn-copy-submission" class="btn btn-primary">Copy Final Submission</button>' +
+      '</div>' +
+
+      (status === 'Shipped' ?
+        '<div class="proof-success-message">Project 1 Shipped Successfully.</div>' : '') +
+      '</div>' +
       '</div>'
     );
   }
