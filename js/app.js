@@ -7,7 +7,9 @@
     '/saved': 'Saved',
     '/digest': 'Digest',
     '/settings': 'Settings',
-    '/proof': 'Proof'
+    '/proof': 'Proof',
+    '/jt/07-test': 'Test Checklist',
+    '/jt/08-ship': 'Ship'
   };
 
   var STORAGE_KEY_SAVED = 'job-notification-tracker-saved';
@@ -591,6 +593,18 @@
     var allJobs = getJobs();
     var updatesHTML = '';
 
+    // Expose for global onclick handlers
+    window.app = {
+      toggleSave: function (id) { toggleSaved(id); render(location.pathname); },
+      showModal: function (id) {
+        var job = getJobs().find(function (j) { return j.id === id; });
+        if (job) showModal(job);
+      },
+      setStatus: setStatus,
+      toggleTest: setTestItem,
+      resetTests: resetTests
+    };
+
     if (updates.length > 0) {
       // Filter for recent (last 3 for simple display)
       var recent = updates.slice(0, 3);
@@ -674,6 +688,114 @@
     render('/digest');
   }
 
+  // --- Test Checklist Logic ---
+  var STORAGE_KEY_TESTS = 'jobTrackerTestStatus';
+
+  var TEST_ITEMS = [
+    { id: 't1', label: 'Preferences persist after refresh', tooltip: 'Change settings, refresh page, verify settings are saved.' },
+    { id: 't2', label: 'Match score calculates correctly', tooltip: 'Verify job match score updates based on settings.' },
+    { id: 't3', label: '"Show only matches" toggle works', tooltip: 'Toggle switch in dashboard, verify low match jobs disappear.' },
+    { id: 't4', label: 'Save job persists after refresh', tooltip: 'Star a job, refresh, verify it remains starred.' },
+    { id: 't5', label: 'Apply opens in new tab', tooltip: 'Click Apply, verify a new browser tab opens.' },
+    { id: 't6', label: 'Status update persists after refresh', tooltip: 'Change job status, refresh, verify status remains.' },
+    { id: 't7', label: 'Status filter works correctly', tooltip: 'Filter by "Applied", verify only applied jobs show.' },
+    { id: 't8', label: 'Digest generates top 10 by score', tooltip: 'Go to /digest, count items, verify sorting.' },
+    { id: 't9', label: 'Digest persists for the day', tooltip: 'Refresh /digest, verify content does not change.' },
+    { id: 't10', label: 'No console errors on main pages', tooltip: 'Open DevTools (F12), browse pages, check Console tab.' }
+  ];
+
+  function getTestStatus() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_TESTS);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function setTestItem(id, checked) {
+    var status = getTestStatus();
+    if (checked) status[id] = true;
+    else delete status[id];
+    localStorage.setItem(STORAGE_KEY_TESTS, JSON.stringify(status));
+    render('/jt/07-test'); // Re-render to update progress
+  }
+
+  function resetTests() {
+    localStorage.removeItem(STORAGE_KEY_TESTS);
+    render('/jt/07-test');
+  }
+
+  function getTestChecklistHTML() {
+    var status = getTestStatus();
+    var checkedCount = 0;
+    TEST_ITEMS.forEach(function (item) { if (status[item.id]) checkedCount++; });
+
+    var allPassed = checkedCount === TEST_ITEMS.length;
+
+    var listHTML = TEST_ITEMS.map(function (item) {
+      var isChecked = !!status[item.id];
+      return (
+        '<div class="test-item">' +
+        '<label class="checkbox-label">' +
+        '<input type="checkbox" ' + (isChecked ? 'checked' : '') +
+        ' onchange="app.toggleTest(\'' + item.id + '\', this.checked)">' +
+        '<span>' + escapeHtml(item.label) + '</span>' +
+        '</label>' +
+        '<div class="test-tooltip" data-tooltip="' + escapeHtml(item.tooltip) + '">?</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    return (
+      '<div class="test-page">' +
+      '<div class="test-card">' +
+      '<div class="test-header">' +
+      '<h1>Test Checklist</h1>' +
+      '<div class="test-summary ' + (allPassed ? 'text-success' : 'text-warning') + '">' +
+      'Tests Passed: <strong>' + checkedCount + ' / ' + TEST_ITEMS.length + '</strong>' +
+      '</div>' +
+      (!allPassed ? '<p class="text-sm text-muted">Resolve all issues before shipping.</p>' : '') +
+      '</div>' +
+      '<div class="test-list">' + listHTML + '</div>' +
+      '<div class="test-actions">' +
+      '<button class="btn btn-sm btn-outline" onclick="app.resetTests()">Reset Test Status</button>' +
+      (allPassed ?
+        '<a href="/jt/08-ship" class="btn btn-primary">Proceed to Ship</a>' :
+        '<button class="btn btn-primary" disabled>Ship Locked 🔒</button>') +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function getShipHTML() {
+    var status = getTestStatus();
+    var checkedCount = 0;
+    TEST_ITEMS.forEach(function (item) { if (status[item.id]) checkedCount++; });
+    var allPassed = checkedCount === TEST_ITEMS.length;
+
+    if (!allPassed) {
+      return (
+        '<div class="app-empty-state">' +
+        '<h2 class="app-empty-state-title">Ship Locked 🔒</h2>' +
+        '<p class="app-empty-state-text">You must complete the Test Checklist first.</p>' +
+        '<a href="/jt/07-test" class="btn btn-primary">Go to Checklist</a>' +
+        '</div>'
+      );
+    }
+
+    return (
+      '<div class="ship-page">' +
+      '<div class="ship-card">' +
+      '<h1>🚢 Ready to Ship!</h1>' +
+      '<p>All tests passed. You are ready to deploy.</p>' +
+      '<div class="ship-actions">' +
+      '<a href="/" class="btn btn-primary">Back to Home</a>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
   function getProofHTML() {
     return (
       '<div class="proof-placeholder">' +
@@ -691,6 +813,8 @@
     if (key === '/saved') return getSavedHTML();
     if (key === '/digest') return getDigestHTML();
     if (key === '/proof') return getProofHTML();
+    if (key === '/jt/07-test') return getTestChecklistHTML();
+    if (key === '/jt/08-ship') return getShipHTML();
     return getLandingHTML();
   }
 
