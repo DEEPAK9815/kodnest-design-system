@@ -1,0 +1,303 @@
+/* 
+  KodNest Premium Build System 
+  Design Philosophy: Calm, Intentional, Coherent, Confident
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+:root {
+    /* COLORS */
+    --kn-color-bg: #F7F6F3;
+    --kn-color-text: #111111;
+    --kn-color-accent: #8B0000;
+    /* Deep Red */
+    --kn-color-accent-hover: #660000;
+    --kn-color-border: #E5E5E5;
+    --kn-color-success: #4B6F44;
+    /* Muted Green */
+    --kn-color-warning: #D9A552;
+    /* Muted Amber */
+    --kn-color-white: #FFFFFF;
+
+    /* SPACING */
+    --kn-space-xs: 8px;
+    --kn-space-sm: 16px;
+    --kn-space-md: 24px;
+    --kn-space-lg: 40px;
+    --kn-space-xl: 64px;
+
+    /* TYPOGRAPHY */
+    --kn-font-serif: 'Playfair Display', serif;
+    --kn-font-sans: 'Inter', sans-serif;
+
+    --kn-text-h1: 2.5rem;
+    --kn-text-h2: 2rem;
+    --kn-text-h3: 1.5rem;
+    --kn-text-body: 1rem;
+    /* 16px */
+    --kn-text-small: 0.875rem;
+
+    /* TRANSITIONS */
+    --kn-transition: all 200ms ease-in-out;
+}
+
+/* RESET */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--kn-color-bg);
+    color: var(--kn-color-text);
+    font-family: var(--kn-font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* TYPOGRAPHY UTILITIES */
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--kn-font-serif);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: var(--kn-space-sm);
+}
+
+p {
+    font-family: var(--kn-font-sans);
+    font-size: var(--kn-text-body);
+    color: var(--kn-color-text);
+    max-width: 720px;
+    margin-bottom: var(--kn-space-sm);
+    opacity: 0.9;
+}
+
+/* GLOBAL LAYOUT STRUCTURE */
+.kn-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* 1. TOP BAR */
+.kn-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kn-space-md) var(--kn-space-lg);
+    border-bottom: 1px solid var(--kn-color-border);
+    background-color: var(--kn-color-bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.kn-top-bar-title {
+    font-weight: 600;
+    font-size: var(--kn-text-small);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.kn-progress-indicator {
+    font-family: var(--kn-font-serif);
+    font-weight: 600;
+    color: var(--kn-color-accent);
+}
+
+.kn-status-badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--kn-color-border);
+    font-weight: 600;
+}
+
+.kn-status-badge.not-started {
+    background: #E5E5E5;
+    color: #666;
+}
+
+.kn-status-badge.in-progress {
+    background: #E0E7FF;
+    color: #3730A3;
+    border-color: #3730A3;
+}
+
+.kn-status-badge.shipped {
+    background: #DCFCE7;
+    color: var(--kn-color-success);
+    border-color: var(--kn-color-success);
+}
+
+
+/* 2. CONTEXT HEADER */
+.kn-context-header {
+    padding: var(--kn-space-lg) var(--kn-space-lg) var(--kn-space-md);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.kn-context-header h1 {
+    font-size: var(--kn-text-h1);
+    color: var(--kn-color-accent);
+    margin-bottom: var(--kn-space-xs);
+}
+
+.kn-context-header p {
+    font-size: 1.125rem;
+    opacity: 0.7;
+}
+
+/* 3. MAIN CONTENT AREA (Workspace + Panel) */
+.kn-content-grid {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    /* 70% 30% */
+    gap: var(--kn-space-lg);
+    padding: 0 var(--kn-space-lg) var(--kn-space-xl);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+}
+
+/* Primary Workspace */
+.kn-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-md);
+}
+
+.kn-card {
+    background: var(--kn-color-white);
+    border: 1px solid var(--kn-color-border);
+    padding: var(--kn-space-lg);
+    border-radius: 8px;
+    /* Clean radius */
+    transition: var(--kn-transition);
+}
+
+.kn-card:hover {
+    border-color: #d4d4d4;
+    /* No drop shadow on hover, just subtle border shift */
+}
+
+/* Secondary Panel */
+.kn-secondary-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-md);
+}
+
+.kn-panel-box {
+    background: white;
+    /* Or transparent? standard says Calm styling */
+    padding: var(--kn-space-md);
+    border: 1px solid var(--kn-color-border);
+    border-radius: 8px;
+}
+
+.kn-prompt-box {
+    background: #F9F9F9;
+    border: 1px solid var(--kn-color-border);
+    padding: var(--kn-space-sm);
+    font-family: 'Courier New', monospace;
+    /* Code feel */
+    font-size: 0.875rem;
+    color: #333;
+    margin-bottom: var(--kn-space-md);
+    border-radius: 4px;
+}
+
+/* 4. PROOF FOOTER */
+.kn-proof-footer {
+    border-top: 1px solid var(--kn-color-border);
+    background: var(--kn-color-white);
+    padding: var(--kn-space-md) var(--kn-space-lg);
+    display: flex;
+    justify-content: center;
+    gap: var(--kn-space-xl);
+}
+
+.kn-proof-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kn-space-xs);
+    font-weight: 500;
+    font-size: var(--kn-text-small);
+}
+
+/* COMPONENTS */
+.kn-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--kn-transition);
+    font-family: var(--kn-font-sans);
+    text-decoration: none;
+}
+
+.kn-btn-primary {
+    background-color: var(--kn-color-accent);
+    color: white;
+    border: 1px solid var(--kn-color-accent);
+}
+
+.kn-btn-primary:hover {
+    background-color: var(--kn-color-accent-hover);
+    border-color: var(--kn-color-accent-hover);
+}
+
+.kn-btn-secondary {
+    background-color: transparent;
+    color: var(--kn-color-text);
+    border: 1px solid var(--kn-color-border);
+}
+
+.kn-btn-secondary:hover {
+    border-color: var(--kn-color-text);
+    background-color: white;
+}
+
+/* INPUTS */
+.kn-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--kn-color-border);
+    border-radius: 6px;
+    font-family: var(--kn-font-sans);
+    font-size: 1rem;
+    transition: var(--kn-transition);
+    background: white;
+    margin-bottom: var(--kn-space-md);
+}
+
+.kn-input:focus {
+    outline: none;
+    border-color: var(--kn-color-text);
+}
+
+/* UTILS */
+.kn-label {
+    display: block;
+    font-weight: 600;
+    font-size: var(--kn-text-small);
+    margin-bottom: var(--kn-space-xs);
+    font-family: var(--kn-font-sans);
+}

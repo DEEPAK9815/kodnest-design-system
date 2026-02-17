@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KodNest Premium Build System — Preview</title>
+  <link rel="stylesheet" href="kodnest.css">
+  <style>
+    /* Inline styles for preview purposes only (e.g. checkbox state simulation) */
+    .checkbox-mock {
+      width: 16px; 
+      height: 16px; 
+      border: 1px solid var(--kn-color-text); 
+      display: inline-block;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="kn-layout">
+    
+    <!-- 1. TOP BAR -->
+    <header class="kn-top-bar">
+      <div class="kn-top-bar-title">Project Alpha</div>
+      <div class="kn-progress-indicator">Step 3 / 8</div>
+      <div class="kn-status-badge in-progress">In Progress</div>
+    </header>
+
+    <!-- 2. CONTEXT HEADER -->
+    <section class="kn-context-header">
+      <h1>Define User Roles</h1>
+      <p>Configure the initial role-based access control for the application.</p>
+    </section>
+
+    <!-- 3. MAIN CONTENT (Workspace + Panel) -->
+    <main class="kn-content-grid">
+      
+      <!-- Primary Workspace (70%) -->
+      <div class="kn-workspace">
+        <div class="kn-card">
+          <h3>Role Configuration</h3>
+          <p>Define the primary roles that will access the system. Standard roles include Admin, Editor, and Viewer.</p>
+          
+          <div style="margin-top: 24px;">
+            <label class="kn-label">Role Name</label>
+            <input type="text" class="kn-input" placeholder="e.g. Super Admin" value="Administrator">
+            
+            <label class="kn-label">Description</label>
+            <input type="text" class="kn-input" placeholder="Brief description of permissions">
+            
+            <div style="display: flex; gap: 16px; margin-top: 24px;">
+              <button class="kn-btn kn-btn-primary">Save Role</button>
+              <button class="kn-btn kn-btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="kn-card">
+          <h3>Existing Roles</h3>
+          <p>No roles configured yet.</p>
+        </div>
+      </div>
+
+      <!-- Secondary Panel (30%) -->
+      <aside class="kn-secondary-panel">
+        <div class="kn-panel-box">
+          <h4>AI Assistance</h4>
+          <p style="font-size: 0.875rem;">Copy this prompt to your AI builder to generate the backend logic.</p>
+          
+          <div class="kn-prompt-box">
+            Create a Supabase table for 'user_roles' with id, name, and permissions jsonb column.
+          </div>
+          
+          <button class="kn-btn kn-btn-secondary" style="width: 100%; justify-content: center;">Copy Prompt</button>
+        </div>
+
+        <div class="kn-panel-box">
+          <h4>Validation</h4>
+          <button class="kn-btn kn-btn-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">It Worked</button>
+          <button class="kn-btn kn-btn-secondary" style="width: 100%; justify-content: center; color: var(--kn-color-accent); border-color: var(--kn-color-accent);">Error / Help</button>
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- 4. PROOF FOOTER -->
+    <footer class="kn-proof-footer">
+      <div class="kn-proof-item"><span class="checkbox-mock"></span> UI Built</div>
+      <div class="kn-proof-item"><span class="checkbox-mock"></span> Logic Working</div>
+      <div class="kn-proof-item"><span class="checkbox-mock"></span> Test Passed</div>
+      <div class="kn-proof-item"><span class="checkbox-mock"></span> Deployed</div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
